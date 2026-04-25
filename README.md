@@ -9,6 +9,7 @@ This program combines conversational AI with built-in tools like a calculator, t
 
 ---
 
+<img width="595" height="420" alt="Screenshot 2026-04-25 182231" src="https://github.com/user-attachments/assets/3618dfaf-3337-4ee0-bc8a-a1c56bd77c24" />
 ## 📌 Features
 
 * 💬 Intelligent AI chat with memory
