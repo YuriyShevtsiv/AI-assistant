@@ -3,7 +3,7 @@ import datetime
 import random
 import webbrowser
 import tkinter as tk
-from tkinter import scrolledtext
+from tkinter import scrolledtext, simpledialog, messagebox
 from openai import OpenAI
 
 # =========================
@@ -24,10 +24,12 @@ MAX_HISTORY = 12  # prevents memory overload
 # 🔹 AI ENGINE
 # =========================
 class Brain:
-    def __init__(self):
+    def __init__(self, root=None):
         api_key = os.getenv("OPENAI_API_KEY")
+        if not api_key and root:
+            api_key = simpledialog.askstring("API Key", "Enter your OpenAI API key:", show="*")
         if not api_key:
-            api_key = input("Enter your OpenAI API key: ")
+            raise ValueError("OpenAI API key not provided")
         self.client = OpenAI(api_key=api_key)
 
     def think(self, messages):
@@ -71,8 +73,8 @@ class Tools:
     def calc(expr):
         try:
             return str(eval(expr))
-        except:
-            return "Calculation error"
+        except Exception as e:
+            return f"Calculation error: {str(e)}"
 
     @staticmethod
     def time():
@@ -96,8 +98,8 @@ class Tools:
 # 🔹 SMART ASSISTANT
 # =========================
 class SmartAssistant:
-    def __init__(self):
-        self.brain = Brain()
+    def __init__(self, root=None):
+        self.brain = Brain(root=root)
         self.memory = Memory()
 
     def detect_intent(self, text):
@@ -124,9 +126,13 @@ class SmartAssistant:
         parts = text.split()
 
         if intent == "calc":
+            if len(parts) < 2:
+                return "Usage: calc <expression>"
             return Tools.calc(" ".join(parts[1:]))
 
         if intent == "open":
+            if len(parts) < 2:
+                return "Usage: open <url>"
             return Tools.open(parts[1])
 
         if intent == "time":
@@ -136,7 +142,12 @@ class SmartAssistant:
             return Tools.date()
 
         if intent == "random":
-            return Tools.random(int(parts[1]), int(parts[2]))
+            try:
+                if len(parts) < 3:
+                    return "Usage: random <min> <max>"
+                return Tools.random(int(parts[1]), int(parts[2]))
+            except ValueError:
+                return "Random error: arguments must be integers"
 
         if intent == "clear":
             self.memory.clear()
@@ -175,7 +186,7 @@ class SmartAssistant:
 # =========================
 class AIAssistantGUI:
     def __init__(self, root):
-        self.bot = SmartAssistant()
+        self.bot = SmartAssistant(root=root)
         self.root = root
         self.root.title("Smart AI Assistant")
         self.root.geometry("600x400")
@@ -185,7 +196,7 @@ class AIAssistantGUI:
         self.output.pack(pady=10, padx=10, fill=tk.BOTH, expand=True)
         self.output.insert(tk.END, "🧠 Smart AI Assistant\nType 'exit' to quit\n\n")
 
-        # 1Input frame
+        # Input frame
         input_frame = tk.Frame(root)
         input_frame.pack(fill=tk.X, padx=10, pady=5)
 
